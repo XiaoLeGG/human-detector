@@ -1,12 +1,12 @@
 import numpy as np 
-from skimage.transform import pyramid_gaussian
-from imutils.object_detection import non_max_suppression
+import skimage.transform as transform
+from imutils.object_detection import non_max_suppression as nms
 import imutils
-from skimage.feature import hog
-from sklearn.externals import joblib
+import skimage.feature as feature
+import joblib
 import cv2
 from config import *
-from skimage import color
+import skimage as skim
 import matplotlib.pyplot as plt 
 import os 
 import glob
@@ -26,8 +26,8 @@ def sliding_window(image, window_size, step_size):
     The function returns a tuple -
     (x, y, im_window)
     '''
-    for y in xrange(0, image.shape[0], step_size[1]):
-        for x in xrange(0, image.shape[1], step_size[0]):
+    for y in range(0, image.shape[0], step_size[1]):
+        for x in range(0, image.shape[1], step_size[0]):
             yield (x, y, image[y: y + window_size[1], x: x + window_size[0]])
 
 def detector(filename):
@@ -44,15 +44,15 @@ def detector(filename):
     #The current scale of the image 
     scale = 0
 
-    for im_scaled in pyramid_gaussian(im, downscale = downscale):
+    for im_scaled in transform.pyramid_gaussian(im, downscale = downscale):
         #The list contains detections at the current scale
         if im_scaled.shape[0] < min_wdw_sz[1] or im_scaled.shape[1] < min_wdw_sz[0]:
             break
         for (x, y, im_window) in sliding_window(im_scaled, min_wdw_sz, step_size):
             if im_window.shape[0] != min_wdw_sz[1] or im_window.shape[1] != min_wdw_sz[0]:
                 continue
-            im_window = color.rgb2gray(im_window)
-            fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
+            im_window = skim.color.rgb2gray(im_window)
+            fd = feature.hog(im_window, orientations=orientations, pixels_per_cell=pixels_per_cell, cells_per_block=cells_per_block, visualize=visualize, block_norm=block_norm)
 
             fd = fd.reshape(1, -1)
             pred = clf.predict(fd)
@@ -75,10 +75,10 @@ def detector(filename):
 
     rects = np.array([[x, y, x + w, y + h] for (x, y, _, w, h) in detections])
     sc = [score[0] for (x, y, score, w, h) in detections]
-    print "sc: ", sc
+    print ("sc: ", sc)
     sc = np.array(sc)
-    pick = non_max_suppression(rects, probs = sc, overlapThresh = 0.3)
-    print "shape, ", pick.shape
+    pick = nms(rects, probs = sc, overlapThresh = 0.3)
+    print ("shape, ", pick.shape)
 
     for(xA, yA, xB, yB) in pick:
         cv2.rectangle(clone, (xA, yA), (xB, yB), (0, 255, 0), 2)

@@ -11,3 +11,4 @@ pos_feat_ph = '../data/features/pos'
 neg_feat_ph = '../data/features/neg'
 model_path = '../data/models/'
 threshold = .3
+block_norm = 'L1'

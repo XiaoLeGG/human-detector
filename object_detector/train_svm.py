@@ -5,8 +5,8 @@ Created on Sat Mar 26 17:39:58 2016
 @author: ldy
 """
 
-from sklearn.svm import LinearSVC
-from sklearn.externals import joblib
+import sklearn.svm as svm
+import joblib
 import glob
 import os
 from config import *
@@ -32,16 +32,16 @@ def train_svm():
         fd = joblib.load(feat_path)
         fds.append(fd)
         labels.append(0)
-    print np.array(fds).shape,len(labels)
-    if clf_type is "LIN_SVM":
-        clf = LinearSVC()
-        print "Training a Linear SVM Classifier"
+    print (np.array(fds).shape,len(labels))
+    if clf_type == "LIN_SVM":
+        clf = svm.LinearSVC()
+        print ("Training a Linear SVM Classifier")
         clf.fit(fds, labels)
         # If feature directories don't exist, create them
         if not os.path.isdir(os.path.split(model_path)[0]):
             os.makedirs(os.path.split(model_path)[0])
-        joblib.dump(clf, model_path)
-        print "Classifier saved to {}".format(model_path)
+        joblib.dump(clf, model_path + "svm.model")
+        print ("Classifier saved to {}".format(model_path))
         
 #训练SVM并保存模型
 train_svm()
